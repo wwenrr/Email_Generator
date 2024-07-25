@@ -1,2 +1,2 @@
 # Email_Generator
- nah
+npm install puppeteer
