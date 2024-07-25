@@ -1,2 +1,3 @@
 # Email_Generator
- nah
+pip install webdriver-manager
+pip install selenium
