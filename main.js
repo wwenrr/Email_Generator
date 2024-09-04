@@ -1,95 +1,109 @@
 const puppeteer = require("puppeteer");
+const { readFile } = require("./data/data"); // Import readFile từ module
 
 function delay(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+const foo = async (user, pass) => {
+  try {
+    console.log(user);
+    console.log(pass);
 
+    const browser = await puppeteer.launch({ headless: false });
+
+    const page = await browser.newPage();
+
+    await page.goto("https://www.youtube.com/");
+
+    await page.waitForSelector("a.yt-spec-button-shape-next", {
+      timeout: 30000,
+    });
+    await page.click("a.yt-spec-button-shape-next");
+    await page.waitForNavigation({ waitUntil: "networkidle0" });
+
+    //click
+    await page.waitForSelector("#identifierId");
+    await page.type("#identifierId", user);
+
+    //next
+    await page.waitForSelector("#identifierNext");
+    await page.click("#identifierNext");
+    await page.waitForNavigation({ waitUntil: "networkidle0" });
+
+    //type password
+    await delay("1000");
+    console.log("done");
+    await page.waitForSelector("input.whsOnd.zHQkBf");
+    await page.type("input.whsOnd.zHQkBf", pass);
+    await page.waitForSelector("button.VfPpkd-LgbsSe");
+
+    const buttons = await page.$$("button.VfPpkd-LgbsSe");
+    for (const button of buttons) {
+      const text = await page.evaluate((el) => el.innerText, button);
+      if (text.includes("Next")) {
+        await button.click();
+        console.log('Clicked on the "Next" button');
+        break;
+      }
+    }
+
+    //================================================
+    await page.goto("https://youtube.com/@Keo_Mon");
+
+    await page.waitForSelector("a.yt-spec-button-shape-next", {
+      timeout: 30000,
+    });
+    await page.click("a.yt-spec-button-shape-next");
+
+    try {
+      // Chờ nút với lớp class cụ thể
+      await page.waitForSelector("button.yt-spec-button-shape-next");
+
+      // Nhấp vào nút với văn bản "Subscribe"
+      await page.evaluate(() => {
+        // Tìm tất cả các nút với lớp class cụ thể
+        const buttons = document.querySelectorAll(
+          "button.yt-spec-button-shape-next"
+        );
+
+        // Duyệt qua tất cả các nút để tìm nút có văn bản "Subscribe"
+        for (const button of buttons) {
+          const textContentElement = button.querySelector(
+            ".yt-spec-button-shape-next__button-text-content"
+          );
+          if (
+            textContentElement &&
+            textContentElement.innerText.includes("Subscribe")
+          ) {
+            button.click();
+            console.log('Clicked on the "Subscribe" button');
+            break;
+          }
+        }
+      });
+    } catch (error) {
+      console.error("Error finding or clicking the subscribe button:", error);
+    }
+
+    await delay(50000000);
+    await browser.close();
+
+    console.log("Browser launched successfully!");
+  } catch (error) {
+    console.error("Error launching browser:", error);
+  }
+};
 
 (async () => {
   try {
-    const browser = await puppeteer.launch({ headless: false });
-    console.log('Browser launched successfully!');
-    foo(browser)
-  } catch (error) {
-    console.error('Error launching browser:', error);
+    arr = await readFile();
+    console.log(arr);
+
+    for (let i = 0; i < 2; i += 2) {
+      foo(arr[i], arr[i + 1]);
+    }
+  } catch (err) {
+    console.error("Error initializing array:", err);
   }
 })();
-
-foo = async (browser) => {
-  const page = await browser.newPage();
-
-  // Điều hướng đến URL
-  await page.goto(
-    "https://accounts.google.com/signup/v2/createaccount?continue=http%3A%2F%2Fsupport.google.com%2Faccounts%2Fanswer%2F27441%3Fhl%3Dvi&hl=vi&parent_directed=true&ddm=0&flowName=GlifWebSignIn&flowEntry=SignUp"
-  );
-
-  const pageTitle = await page.title();
-  console.log(`Page Title: ${pageTitle}`);
-
-  try {
-    await page.waitForSelector('input[id="lastName"]');
-    await page.type('input[id="lastName"]', "John");
-
-    await page.waitForSelector('input[id="firstName"]');
-    await page.type('input[id="firstName"]', "Doe");
-  } catch (error) {
-    console.log("Fail!", error);
-  }
-
-  try {
-    await page.click(".VfPpkd-vQzf8d");
-  } catch (error) {
-    console.log("Fail to click button!", error);
-  }
-
-  // Trang mới
-  await page.waitForNavigation({ waitUntil: "networkidle0" });
-
-  try {
-    await page.type('input[id="day"]', "1");
-    await page.select("select#month", "1");
-    await page.type('input[id="year"]', "2010");
-    await page.select("select#gender", "1");
-  } catch (error) {
-    console.log("Fail to Submit!");
-  }
-
-  try {
-    await page.click(".VfPpkd-RLmnJb");
-  } catch (error) {
-    console.log("Fail to click button!", error);
-  }
-
-  //Trang mới
-  await page.waitForNavigation({ waitUntil: "networkidle0" });
-
-  try {
-    await page.focus(".whsOnd.zHQkBf"); //focus
-
-    await delay(1000);
-    await page.keyboard.type("asdfaed332s", { delay: 10 }); // Trễ 10ms
-    await page.click(".VfPpkd-vQzf8d");
-  } catch (error) {
-    console.log("Error when typing:", error);
-  }
-
-  //Trang mới
-  await page.waitForNavigation({ waitUntil: "networkidle0" });
-
-  try {
-    await delay(1000);
-    await page.focus('input[name="Passwd"]'); //focus 1
-    await page.keyboard.type("MK07042004", { delay: 10 }); // Trễ 10ms
-
-    await delay(100);
-    await page.focus('input[name="PasswdAgain"]'); //focus 1
-    await page.keyboard.type("MK07042004", { delay: 10 }); // Trễ 10ms
-
-    await page.click(".VfPpkd-vQzf8d");
-  } catch (error) {}
-
-  // Đóng trình duyệt
-  // await browser.close();
-  await delay(10000000);
-};
